@@ -4,16 +4,21 @@ import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.view.isGone
 import com.project.githubrepositoryapp.databinding.ActivityMainBinding
+import com.project.githubrepositoryapp.utility.AuthTokenProvider
+import com.project.githubrepositoryapp.utility.RetrofitUtil
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
 class MainActivity : AppCompatActivity(), CoroutineScope {
 
     private lateinit var binding: ActivityMainBinding
-
-    val job: Job = Job()
+    private val authTokenProvider by lazy { AuthTokenProvider(this) }
+    private val job: Job = Job()
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
@@ -51,12 +56,43 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
 
         intent?.data?.getQueryParameter("code")?.let {
             launch(coroutineContext) {
+                showProgress()
                 getAccessToken(it)
+                dismissProgress()
             }
         }
     }
 
+    private suspend fun showProgress() = withContext(coroutineContext) {
+        with(binding) {
+            loginButton.isGone = true
+            progressBar.isGone = false
+            progressTextView.isGone = false
+        }
+    }
+
+    private suspend fun dismissProgress() = withContext(coroutineContext) {
+        with(binding) {
+            loginButton.isGone = false
+            progressBar.isGone = true
+            progressTextView.isGone = true
+        }
+    }
+
     private suspend fun getAccessToken(code: String) = withContext(Dispatchers.IO) {
-        val response
+        val response = RetrofitUtil.authApiService.getAccessToken(
+            clientId = BuildConfig.GITHUB_CLIENT_ID,
+            clientSecret = BuildConfig.GITHUB_CLIENT_SECRET,
+            code = code
+        )
+        if (response.isSuccessful) {
+            val accessToken = response.body()?.accessToken ?: ""
+            Log.e("accessToken", accessToken)
+            if (accessToken.isNotEmpty()) {
+                authTokenProvider.updateToken(accessToken)
+            } else {
+                Toast.makeText(this@MainActivity, "accessToken이 존재하지 않습니다.", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 }
