@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.project.githubrepositoryapp">
-    
-    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -12,16 +12,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GithubRepositoryApp">
         <activity
-            android:name=".MainActivity"
-            android:launchMode="singleTask"
+            android:name=".SearchActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SignInActivity"
             android:exported="true"
-            >
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -31,9 +32,9 @@
                 <data
                     android:host="github-auth"
                     android:scheme="git-repo-app" />
-
             </intent-filter>
         </activity>
+        <activity android:name=".MainActivity" />
     </application>
 
 </manifest>
